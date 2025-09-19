@@ -23,6 +23,15 @@ class ServiceStopper {
       // Also try to kill any Go processes that might be reconYa
       await this.killreconYaProcesses();
 
+      // Final verification - check if port 3008 is still occupied
+      const finalCheck = await Utils.findProcessByPort(3008);
+      if (finalCheck) {
+        Utils.log.error(`Warning: Port 3008 is still occupied by process ${finalCheck.pid}`);
+        Utils.log.info('You may need to manually kill this process:');
+        Utils.log.info(`sudo kill -9 ${finalCheck.pid}`);
+        stoppedAny = true; // Still count as action taken
+      }
+
       if (stoppedAny) {
         Utils.log.success('reconYa backend stopped');
       } else {
@@ -93,22 +102,46 @@ class ServiceStopper {
           }
         }
       } else {
-        // Unix-like: Only kill Go processes running reconya backend (not any process with 'reconya' in command line)
-        try {
-          // Only kill processes that match 'go run' with reconya/cmd/main.go
-          await Utils.runCommand('pkill', ['-f', 'go run .*reconya/cmd/main.go'], { silent: true });
-        } catch {
-          // Ignore errors - process might not exist
+        // Unix-like: More comprehensive process killing
+        const killCommands = [
+          // Kill 'go run' processes with reconya
+          ['pkill', ['-f', 'go run .*reconya']],
+          ['pkill', ['-f', 'go run.*main.go.*reconya']],
+          ['pkill', ['-f', 'go run.*cmd/main.go']],
+          // Kill compiled binaries
+          ['pkill', ['-f', 'backend/cmd/reconya']],
+          ['pkill', ['-f', '/reconya/backend']],
+          ['pkill', ['-f', 'reconya.*main']],
+          // Kill any process with reconya in the command line that's using port 3008
+          ['pkill', ['-f', 'reconya.*3008']],
+          // Kill processes by name patterns
+          ['killall', ['-q', 'reconya']],
+          ['killall', ['-q', 'main']]
+        ];
+
+        for (const [cmd, args] of killCommands) {
+          try {
+            await Utils.runCommand(cmd, args, { silent: true });
+          } catch {
+            // Ignore errors - process might not exist
+          }
         }
+
+        // Additional check: find any remaining processes on port 3008
         try {
-          // Also try killing compiled reconya binary in backend/cmd
-          await Utils.runCommand('pkill', ['-f', 'backend/cmd/reconya'], { silent: true });
+          const proc = await Utils.findProcessByPort(3008);
+          if (proc) {
+            Utils.log.warning(`Found remaining process on port 3008: ${proc.pid}`);
+            await Utils.killProcess(proc.pid, true);
+            Utils.log.info(`Force killed process ${proc.pid}`);
+          }
         } catch {
-          // Ignore errors - process might not exist
+          // Ignore errors
         }
       }
     } catch (error) {
       // Ignore errors in this cleanup phase
+      Utils.log.warning(`Error during process cleanup: ${error.message}`);
     }
   }
 }
