@@ -124,12 +124,11 @@ function deleteNetwork(networkId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Check if we're on the networks page and use the appropriate refresh function
-                if (typeof window.loadNetworksPage === 'function' && window.location.pathname === '/networks') {
-                    window.loadNetworksPage(); // Use the main page function
-                } else {
-                    loadNetworkList(); // Use the list function for other contexts
+                // Try to refresh using both methods to ensure the table updates
+                if (typeof window.loadNetworksPage === 'function') {
+                    window.loadNetworksPage(); // Refresh main page table
                 }
+                loadNetworkList(); // Also refresh any other network lists
                 alert(data.message || 'Network deleted successfully');
             } else {
                 alert(data.error || 'Failed to delete network');
