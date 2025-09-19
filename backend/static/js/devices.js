@@ -57,7 +57,7 @@ function renderDeviceGrid(devices) {
         console.log('devices-container not found in renderDeviceGrid');
         return;
     }
-    
+
     console.log('Devices length:', devices ? devices.length : 'null/undefined');
     if (!devices || devices.length === 0) {
         console.log('No devices found, showing empty message');
@@ -70,12 +70,35 @@ function renderDeviceGrid(devices) {
         `;
         return;
     }
-    
-    console.log('Rendering', devices.length, 'devices');
+
+    // Filter out devices that have never been online
+    // Only show devices that have been seen at least once (have LastSeenOnlineAt timestamp or are currently online/offline)
+    const onlineDevices = devices.filter(device => {
+        return device.LastSeenOnlineAt ||
+               device.status === 'online' ||
+               device.status === 'offline' ||
+               device.status === 'idle';
+    });
+
+    console.log('Filtered to', onlineDevices.length, 'devices that have been online (from', devices.length, 'total)');
+
+    if (onlineDevices.length === 0) {
+        console.log('No online devices found, showing empty message');
+        devicesContainer.innerHTML = `
+            <div class="text-center py-8 text-gray-400">
+                <i class="ti ti-router text-4xl mb-2 block"></i>
+                <p>No devices have been seen online</p>
+                <p class="text-sm text-gray-500">Start a network scan to discover devices</p>
+            </div>
+        `;
+        return;
+    }
+
+    console.log('Rendering', onlineDevices.length, 'online devices');
     
     let gridHTML = '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">';
-    
-    devices.forEach(device => {
+
+    onlineDevices.forEach(device => {
         // Count ports
         let openPorts = 0;
         let filteredPorts = 0;
@@ -154,7 +177,7 @@ function renderDeviceModal(device, screenshotsEnabled = false) {
                         ${device.mac ? `<div><span style="color: var(--text-muted);">MAC Address:</span> <span class="text-blue-400">${device.mac}</span></div>` : ''}
                         ${device.hostname ? `<div><span style="color: var(--text-muted);">Hostname:</span> <span style="color: var(--text-primary);">${device.hostname}</span></div>` : ''}
                         <div><span style="color: var(--text-muted);">Status:</span> <span class="px-2 py-1 rounded text-xs ${getStatusBadgeColor(device.status)}">${device.status}</span></div>
-                        ${device.LastSeen ? `<div><span style="color: var(--text-muted);">Last Seen:</span> <span style="color: var(--text-primary);">${formatLogTime(device.LastSeen)}</span></div>` : ''}
+                        ${device.LastSeenOnlineAt ? `<div><span style="color: var(--text-muted);">Last Seen:</span> <span style="color: var(--text-primary);">${formatLogTime(device.LastSeenOnlineAt)}</span></div>` : ''}
                     </div>
                 </div>
                 

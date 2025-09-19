@@ -115,16 +115,30 @@ function loadAboutPage() {
 }
 
 function showAboutModal() {
+    // Fetch version from API first
+    fetch('/api/about', { credentials: 'include' })
+        .then(response => response.json())
+        .then(data => {
+            const version = data.version || 'unknown';
+            displayAboutModal(version);
+        })
+        .catch(error => {
+            console.error('Error fetching version:', error);
+            displayAboutModal('unknown');
+        });
+}
+
+function displayAboutModal(version) {
     const aboutContent = `
         <div class="p-6 max-w-2xl mx-auto">
             <!-- Header -->
             <div class="text-center mb-6">
-                <h1 class="text-3xl font-bold text-green-500 mb-3">
+                <h1 class="text-3xl font-bold text-green-500 mb-3" style="font-family: 'Orbitron', monospace; font-weight: 800; letter-spacing: 0.5px;">
                     <i class="ti ti-network mr-2"></i>reconYa
                 </h1>
                 <p class="text-lg text-gray-300 mb-3">Network Reconnaissance and Asset Discovery Tool</p>
                 <div class="inline-block bg-green-500 text-black px-3 py-1 rounded text-sm font-semibold">
-                    Version 1.0.0
+                    v${version}
                 </div>
             </div>
 
@@ -183,7 +197,7 @@ function showAboutModal() {
             </div>
         </div>
     `;
-    
+
     // Create and show modal
     const modalEl = document.getElementById('aboutModal');
     if (modalEl) {

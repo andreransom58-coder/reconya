@@ -8,6 +8,7 @@ import (
 	"math"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -2205,8 +2206,11 @@ func (h *WebHandler) APIAbout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Read version from package.json
+	version := h.getVersionFromPackageJSON()
+
 	response := map[string]interface{}{
-		"version": "0.14",
+		"version": version,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -2394,5 +2398,33 @@ func (h *WebHandler) APINetworksDebug(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode networks", http.StatusInternalServerError)
 	}
+}
+
+// getVersionFromPackageJSON reads the version from package.json
+func (h *WebHandler) getVersionFromPackageJSON() string {
+	// Try to read package.json from the project root
+	packageJSONPath := filepath.Join("..", "package.json")
+
+	// If that doesn't work, try relative to the binary location
+	if _, err := os.Stat(packageJSONPath); os.IsNotExist(err) {
+		packageJSONPath = "package.json"
+	}
+
+	data, err := os.ReadFile(packageJSONPath)
+	if err != nil {
+		log.Printf("Error reading package.json: %v", err)
+		return "unknown"
+	}
+
+	var packageInfo struct {
+		Version string `json:"version"`
+	}
+
+	if err := json.Unmarshal(data, &packageInfo); err != nil {
+		log.Printf("Error parsing package.json: %v", err)
+		return "unknown"
+	}
+
+	return packageInfo.Version
 }
 
