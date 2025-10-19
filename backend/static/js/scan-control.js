@@ -4,10 +4,19 @@ function renderScanControlFromData(data) {
     const scanState = data.scanState || {};
     const isScanning = scanState.is_running && !scanState.is_stopping;
     const isStopping = scanState.is_stopping;
-    let selectedNetwork = scanState.selected_network;
-    
-    // Auto-select the first detected network if none is selected and we have detected networks
-    if (!selectedNetwork && window.detectedNetworks && window.detectedNetworks.length > 0) {
+
+    // Priority order for selecting network:
+    // 1. Current network (if scanning)
+    // 2. Selected network (if not scanning)
+    // 3. First detected network (if none selected)
+    let selectedNetwork = null;
+
+    if (scanState.current_network) {
+        selectedNetwork = scanState.current_network;
+    } else if (scanState.selected_network) {
+        selectedNetwork = scanState.selected_network;
+    } else if (window.detectedNetworks && window.detectedNetworks.length > 0) {
+        // Auto-select the first detected network if none is selected
         const detectedCidr = window.detectedNetworks[0].cidr;
         const matchingNetwork = networks.find(n => n.cidr === detectedCidr);
         if (matchingNetwork) {
@@ -154,43 +163,24 @@ function renderScanControlFromData(data) {
         </div>
         
         <style>
+        /* Simple progress bar animation */
         @keyframes scan-progress {
-            0% { 
-                transform: translateX(-100%); 
-                opacity: 0.5;
+            0% {
+                transform: translateX(-100%);
             }
-            50% { 
-                opacity: 1;
-            }
-            100% { 
-                transform: translateX(100%); 
-                opacity: 0.5;
+            100% {
+                transform: translateX(100%);
             }
         }
-        
-        @keyframes pulse-glow {
-            0%, 100% { 
-                box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
-            }
-            50% { 
-                box-shadow: 0 0 20px rgba(34, 197, 94, 0.8), 0 0 30px rgba(34, 197, 94, 0.4);
-            }
-        }
-        
+
         .scan-progress-animation {
-            animation: scan-progress 1.5s ease-in-out infinite;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(34, 197, 94, 0.6) 20%, 
-                rgba(34, 197, 94, 1) 50%, 
-                rgba(34, 197, 94, 0.6) 80%, 
-                transparent 100%);
-            width: 60%;
+            animation: scan-progress 2s ease-in-out infinite;
+            background: rgba(34, 197, 94, 0.8);
+            width: 40%;
             height: 100%;
         }
-        
+
         .bg-green-600.overflow-hidden {
-            animation: pulse-glow 2s ease-in-out infinite;
             border-radius: 9999px;
         }
         </style>
