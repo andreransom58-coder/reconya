@@ -2128,11 +2128,48 @@ func (h *WebHandler) APIDashboardMetrics(w http.ResponseWriter, r *http.Request)
 
 	networkMapData := h.buildNetworkMap(devices)
 
-	// Get system status for public IP
+	// Get system status for public IP and location
 	status, err := h.systemStatusService.GetLatest()
 	var publicIP string = "N/A"
+	var location string = ""
 	if err == nil && status != nil && status.PublicIP != nil {
 		publicIP = *status.PublicIP
+		log.Printf("DEBUG: Got public IP: %s", publicIP)
+
+		// If geolocation is missing, try to fetch it now
+		if status.Geolocation == nil {
+			log.Printf("DEBUG: Geolocation is nil, attempting to fetch for IP %s", publicIP)
+			geo, geoErr := h.systemStatusService.FetchGeolocation(publicIP)
+			if geoErr == nil && geo != nil {
+				log.Printf("DEBUG: Successfully fetched geolocation, updating SystemStatus")
+				status.Geolocation = geo
+				// Update the system status with geolocation
+				_, updateErr := h.systemStatusService.CreateOrUpdate(status)
+				if updateErr != nil {
+					log.Printf("ERROR: Failed to update SystemStatus with geolocation: %v", updateErr)
+				}
+			} else {
+				log.Printf("DEBUG: Failed to fetch geolocation: %v", geoErr)
+			}
+		}
+
+		// Build location string from geolocation data
+		if status.Geolocation != nil {
+			geo := status.Geolocation
+			log.Printf("DEBUG: Geolocation found - City: %s, Region: %s, Country: %s", geo.City, geo.Region, geo.Country)
+			if geo.City != "" && geo.Country != "" {
+				location = geo.City + ", " + geo.Country
+			} else if geo.Country != "" {
+				location = geo.Country
+			} else if geo.Region != "" {
+				location = geo.Region
+			}
+			log.Printf("DEBUG: Final location string: %s", location)
+		} else {
+			log.Printf("DEBUG: Geolocation is still nil for public IP %s", publicIP)
+		}
+	} else {
+		log.Printf("DEBUG: SystemStatus error or nil - err: %v, status: %v", err, status)
 	}
 
 	// Calculate network saturation
@@ -2151,6 +2188,7 @@ func (h *WebHandler) APIDashboardMetrics(w http.ResponseWriter, r *http.Request)
 	metrics := map[string]interface{}{
 		"networkRange":    networkCIDR,
 		"publicIP":        publicIP,
+		"location":        location,
 		"devicesFound":    len(devices),
 		"devicesOnline":   networkMapData.NetworkInfo.OnlineDevices,
 		"devicesOffline":  networkMapData.NetworkInfo.OfflineDevices,

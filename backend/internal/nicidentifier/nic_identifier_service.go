@@ -94,10 +94,21 @@ func (s *NicIdentifierService) Identify() {
 		LocalDevice: *savedDevice,
 		PublicIP:    &publicIP,
 	}
-	
+
 	// Set NetworkID if we have a valid network entity
 	if networkEntity != nil {
 		systemStatus.NetworkID = networkEntity.ID
+	}
+
+	// Fetch geolocation for public IP
+	if publicIP != "" {
+		geo, err := s.SystemStatusService.FetchGeolocation(publicIP)
+		if err == nil && geo != nil {
+			systemStatus.Geolocation = geo
+			log.Printf("Added geolocation for public IP %s: %s, %s", publicIP, geo.City, geo.Country)
+		} else if err != nil {
+			log.Printf("Failed to fetch geolocation for public IP %s: %v", publicIP, err)
+		}
 	}
 
 	_, err = s.SystemStatusService.CreateOrUpdate(&systemStatus)

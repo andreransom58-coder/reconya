@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"reconya-ai/models"
 	"time"
 )
@@ -967,6 +968,28 @@ func (r *SQLiteSystemStatusRepository) FindLatest(ctx context.Context) (*models.
 	}
 	if hostname.Valid {
 		status.LocalDevice.Hostname = &hostname.String
+	}
+
+	// Load geolocation if public IP exists
+	if status.PublicIP != nil && *status.PublicIP != "" {
+		geoQuery := `SELECT id, ip, city, region, country, country_code, latitude, longitude,
+		                    timezone, isp, source, created_at, updated_at, expires_at
+		             FROM geolocation_cache
+		             WHERE ip = ? AND expires_at > ?
+		             ORDER BY created_at DESC LIMIT 1`
+
+		var geo models.GeolocationCache
+		err = tx.QueryRowContext(ctx, geoQuery, *status.PublicIP, time.Now()).Scan(
+			&geo.ID, &geo.IP, &geo.City, &geo.Region, &geo.Country,
+			&geo.CountryCode, &geo.Latitude, &geo.Longitude, &geo.Timezone,
+			&geo.ISP, &geo.Source, &geo.CreatedAt, &geo.UpdatedAt, &geo.ExpiresAt,
+		)
+		if err == nil {
+			status.Geolocation = &geo
+		} else if err != sql.ErrNoRows {
+			// Log the error but don't fail the whole query
+			log.Printf("Warning: failed to load geolocation for IP %s: %v", *status.PublicIP, err)
+		}
 	}
 
 	if err = tx.Commit(); err != nil {

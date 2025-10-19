@@ -122,7 +122,21 @@ function updateDashboardMetrics(data) {
     const devicesOnlineEl = document.getElementById('devices-online');
     
     if (networkRangeEl) networkRangeEl.textContent = data.networkRange || 'N/A';
-    if (publicIpEl) publicIpEl.textContent = data.publicIP || 'N/A';
+
+    // Update public IP with location if available
+    if (publicIpEl) {
+        let ipText = data.publicIP || 'N/A';
+        console.log('Dashboard data:', data);
+        console.log('Location:', data.location);
+        if (data.location && data.location !== '') {
+            console.log('Setting location to:', data.location);
+            publicIpEl.innerHTML = `${ipText}<br><span class="text-xs text-gray-400">${data.location}</span>`;
+        } else {
+            console.log('No location data');
+            publicIpEl.textContent = ipText;
+        }
+    }
+
     if (devicesFoundEl) devicesFoundEl.textContent = data.devicesFound || 0;
     if (devicesOnlineEl) devicesOnlineEl.textContent = data.devicesOnline || 0;
     

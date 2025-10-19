@@ -240,7 +240,7 @@ func main() {
 	networkService := network.NewNetworkService(networkRepo, cfg, dbManager)
 	deviceService := device.NewDeviceService(deviceRepo, networkService, cfg, dbManager, ouiService)
 	eventLogService := eventlog.NewEventLogService(eventLogRepo, deviceService, dbManager)
-	systemStatusService := systemstatus.NewSystemStatusService(systemStatusRepo)
+	systemStatusService := systemstatus.NewSystemStatusService(systemStatusRepo, geolocationRepo)
 	settingsService := settings.NewSettingsService(settingsRepo)
 	portScanService := portscan.NewPortScanService(deviceService, eventLogService)
 	pingSweepService := pingsweep.NewPingSweepService(cfg, deviceService, eventLogService, networkService, portScanService)
