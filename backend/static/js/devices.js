@@ -154,7 +154,7 @@ function renderDeviceGrid(devices) {
         }
 
         gridHTML += `
-            <div class="rounded-sm p-4 transition-colors cursor-pointer relative min-h-[150px] flex flex-col"
+            <div class="rounded p-4 transition-colors cursor-pointer relative min-h-[150px] flex flex-col"
                  style="background: var(--bg-secondary);"
                  onmouseover="this.style.background='var(--bg-tertiary)'"
                  onmouseout="this.style.background='var(--bg-secondary)'"
@@ -168,10 +168,10 @@ function renderDeviceGrid(devices) {
                     </div>
                 ` : ''}
 
-                <div class="text-white font-semibold text-xl mb-2 break-all">${device.ipv4}</div>
+                <div class="text-white font-semibold text-xl mb-1 break-all">${device.ipv4}</div>
                 ${device.mac ? `<div class="text-gray-600 text-xs mb-4">${device.mac}</div>` : '<div class="mb-4"></div>'}
                 <div class="flex-1 flex items-end justify-between">
-                    <div class="text-gray-500 text-sm truncate opacity-75">${(device.hostname || device.name) ? (device.hostname || device.name) : ''}</div>
+                    <div class="text-gray-600 text-xs truncate opacity-60">${(device.hostname || device.name) ? (device.hostname || device.name) : ''}</div>
                 </div>
             </div>
         `;
@@ -416,7 +416,7 @@ function renderDeviceTable(devices) {
     }
     
     return `
-        <div class="rounded-sm overflow-hidden" style="background: var(--bg-secondary);">
+        <div class="rounded overflow-hidden" style="background: var(--bg-secondary);">
             <table class="w-full">
                 <thead style="background: var(--bg-primary);">
                     <tr>
