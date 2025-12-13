@@ -581,7 +581,7 @@ func (h *WebHandler) About(w http.ResponseWriter, r *http.Request) {
 	}{
 		Page:    "about",
 		User:    user,
-		Version: "0.14",
+		Version: h.getVersionFromPackageJSON(),
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "components/about.html", data); err != nil {

@@ -123,17 +123,20 @@ function updateDashboardMetrics(data) {
     
     if (networkRangeEl) networkRangeEl.textContent = data.networkRange || 'N/A';
 
-    // Update public IP with location if available
+    // Update public IP with location as tooltip if available
     if (publicIpEl) {
         let ipText = data.publicIP || 'N/A';
         console.log('Dashboard data:', data);
         console.log('Location:', data.location);
+        publicIpEl.textContent = ipText;
         if (data.location && data.location !== '') {
-            console.log('Setting location to:', data.location);
-            publicIpEl.innerHTML = `${ipText}<br><span class="text-xs text-gray-400">${data.location}</span>`;
+            console.log('Setting location tooltip to:', data.location);
+            publicIpEl.setAttribute('title', data.location);
+            publicIpEl.style.cursor = 'help';
         } else {
             console.log('No location data');
-            publicIpEl.textContent = ipText;
+            publicIpEl.removeAttribute('title');
+            publicIpEl.style.cursor = 'default';
         }
     }
 
