@@ -1,11 +1,8 @@
-// Network suggestion functionality
 window.detectedNetworks = [];
 window.currentSuggestionIndex = 0;
 
-// LocalStorage key for dismissed networks
 const DISMISSED_NETWORKS_KEY = 'reconya_dismissed_networks';
 
-// Get dismissed networks from localStorage
 function getDismissedNetworks() {
     try {
         const dismissed = localStorage.getItem(DISMISSED_NETWORKS_KEY);
@@ -16,7 +13,6 @@ function getDismissedNetworks() {
     }
 }
 
-// Add network to dismissed list in localStorage
 function addDismissedNetwork(cidr) {
     try {
         const dismissed = getDismissedNetworks();
@@ -29,25 +25,22 @@ function addDismissedNetwork(cidr) {
     }
 }
 
-// Check if network is dismissed
 function isNetworkDismissed(cidr) {
     const dismissed = getDismissedNetworks();
     return dismissed.includes(cidr);
 }
 
 function checkForNetworkSuggestions() {
-    
-    // Get both detected networks (new) and existing networks to show proper status
+
     Promise.all([
         fetch('/api/detected-networks', { credentials: 'include' }).then(r => r.ok ? r.json() : []),
         fetch('/api/networks', { credentials: 'include' }).then(r => r.ok ? r.json() : {networks: []})
     ]).then(([detectedData, networksData]) => {
-        
+
         window.detectedNetworks = (detectedData || []).filter(network => !isNetworkDismissed(network.cidr));
         const existingNetworks = networksData.networks || [];
-        
+
         if (window.detectedNetworks.length > 0) {
-            // Show new networks that need to be added (only non-dismissed ones)
             showNetworkSuggestion(0);
         } else {
             // No new networks, but check if we have existing networks that were detected

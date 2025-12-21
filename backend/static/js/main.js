@@ -1,33 +1,27 @@
-// Main initialization file
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize core functionality
     if (typeof initTheme === 'function') {
         initTheme();
     }
-    
+
     if (typeof initSidebar === 'function') {
         initSidebar();
     }
-    
+
     if (typeof initNetworkSuggestions === 'function') {
         initNetworkSuggestions();
     }
-    
-    // Initialize dropdown menu
+
     initDropdownMenu();
-    
-    // Initialize page-specific content based on current page
+
     initPageContent();
 });
 
-// Page initialization
 function initPageContent() {
     const currentPath = window.location.pathname;
-    
+
     switch (currentPath) {
         case '/':
         case '/home':
-            // Initialize dashboard components
             if (typeof loadDevices === 'function') {
                 loadDevices();
             }
@@ -42,7 +36,6 @@ function initPageContent() {
             }
             if (typeof loadDashboardMetrics === 'function') {
                 loadDashboardMetrics();
-                // Update dashboard metrics periodically
                 setInterval(loadDashboardMetrics, 30000);
             }
             break;
@@ -67,55 +60,44 @@ function initPageContent() {
             }
             break;
         default:
-            // Default initialization for other pages
             break;
     }
 }
 
-// Dropdown menu functionality
 function initDropdownMenu() {
     const dropdownButton = document.getElementById('dropdownMenuButton');
     const dropdownMenu = document.getElementById('dropdownMenu');
-    
+
     if (dropdownButton && dropdownMenu) {
-        // Toggle dropdown on button click
         dropdownButton.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             dropdownMenu.classList.toggle('hidden');
         });
-        
-        // Close dropdown when clicking outside
+
         document.addEventListener('click', function(e) {
             if (!dropdownButton.contains(e.target) && !dropdownMenu.contains(e.target)) {
                 dropdownMenu.classList.add('hidden');
             }
         });
-        
-        // Close dropdown when pressing Escape key
+
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 dropdownMenu.classList.add('hidden');
             }
         });
-        
-        // Test function for debugging
+
         window.testDropdownToggle = function() {
             dropdownMenu.classList.toggle('hidden');
         };
     }
 }
 
-// Note: All initialization is now handled by DOMContentLoaded event above
-
-// About page functionality
 function loadAboutPage() {
-    // Show about content in a modal instead of navigating
     showAboutModal();
 }
 
 function showAboutModal() {
-    // Fetch version from API first
     fetch('/api/about', { credentials: 'include' })
         .then(response => response.json())
         .then(data => {
@@ -131,7 +113,6 @@ function showAboutModal() {
 function displayAboutModal(version) {
     const aboutContent = `
         <div class="p-6 max-w-2xl mx-auto">
-            <!-- Header -->
             <div class="text-center mb-6">
                 <h1 class="text-3xl font-bold text-green-500 mb-3" style="font-family: 'Orbitron', monospace; font-weight: 800; letter-spacing: 0.5px;">
                     <i class="ti ti-network mr-2"></i>reconYa
@@ -142,7 +123,6 @@ function displayAboutModal(version) {
                 </div>
             </div>
 
-            <!-- Description -->
             <div class="bg-gray-800 rounded-lg p-4 mb-4 border border-green-500/30">
                 <h3 class="text-lg font-semibold text-green-500 mb-3">
                     <i class="ti ti-info-circle mr-2"></i>About reconYa
@@ -164,7 +144,6 @@ function displayAboutModal(version) {
                 </ul>
             </div>
 
-            <!-- Community Links -->
             <div class="bg-gray-800 rounded-lg p-4 mb-4 border border-green-500/30">
                 <h3 class="text-lg font-semibold text-green-500 mb-3">
                     <i class="ti ti-users mr-2"></i>Community & Support
@@ -182,7 +161,6 @@ function displayAboutModal(version) {
                 </div>
             </div>
 
-            <!-- Legal -->
             <div class="bg-gray-800 rounded-lg p-4 border border-green-500/30">
                 <h3 class="text-lg font-semibold text-green-500 mb-3">
                     <i class="ti ti-file-text mr-2"></i>License

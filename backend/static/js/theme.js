@@ -1,12 +1,8 @@
-// Theme functionality
-function initTheme() {    
-    // Get saved theme or default to dark
+function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'dark';
-    
-    // Apply saved theme immediately
+
     applyTheme(savedTheme);
-    
-    // Set up theme toggle functionality
+
     setupThemeToggle();
 }
 
@@ -35,14 +31,11 @@ function toggleTheme() {
 
 function setupThemeToggle() {
     const themeToggle = document.getElementById('themeToggle');
-    
+
     if (themeToggle) {
-        // Remove any existing listeners to prevent duplicates
         themeToggle.removeEventListener('click', toggleTheme);
-        // Add new listener
         themeToggle.addEventListener('click', toggleTheme);
     } else {
-        // Only retry once to avoid infinite loops
         let retryCount = 0;
         const maxRetries = 3;
         const retrySetup = () => {
@@ -57,7 +50,7 @@ function setupThemeToggle() {
                     } else {
                         retrySetup();
                     }
-                }, 50 * retryCount); // Increasing delay
+                }, 50 * retryCount);
             } else {
                 console.warn('Failed to find theme toggle button after maximum retries');
             }
@@ -66,9 +59,6 @@ function setupThemeToggle() {
     }
 }
 
-// Theme initialization is now handled by main.js DOMContentLoaded
-
-// Debug function to test theme switching
 function forceThemeSwitch() {
     const html = document.documentElement;
     const current = html.getAttribute('data-theme');
@@ -80,7 +70,6 @@ function forceThemeSwitch() {
     }
 }
 
-// Make functions available globally
 window.initTheme = initTheme;
 window.applyTheme = applyTheme;
 window.toggleTheme = toggleTheme;

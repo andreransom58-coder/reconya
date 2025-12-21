@@ -44,7 +44,6 @@ type Device struct {
 	Name              string        `bson:"name" json:"name"`
 	Comment           *string       `bson:"comment,omitempty" json:"comment,omitempty"`
 	IPv4              string        `bson:"ipv4" json:"ipv4"`
-	// IPv6 support
 	IPv6LinkLocal     *string       `bson:"ipv6_link_local,omitempty" json:"ipv6_link_local,omitempty"`
 	IPv6UniqueLocal   *string       `bson:"ipv6_unique_local,omitempty" json:"ipv6_unique_local,omitempty"`
 	IPv6Global        *string       `bson:"ipv6_global,omitempty" json:"ipv6_global,omitempty"`
@@ -66,7 +65,6 @@ type Device struct {
 	WebScanEndedAt    *time.Time    `bson:"web_scan_ended_at,omitempty" json:"web_scan_ended_at,omitempty"`
 }
 
-// IPv6 helper methods
 func (d *Device) HasIPv6() bool {
 	return d.IPv6LinkLocal != nil || d.IPv6UniqueLocal != nil || d.IPv6Global != nil || len(d.IPv6Addresses) > 0
 }
@@ -88,7 +86,6 @@ func (d *Device) GetPrimaryIPv6() *string {
 }
 
 func (d *Device) AddIPv6Address(address string) {
-	// Check if address already exists
 	for _, existing := range d.IPv6Addresses {
 		if existing == address {
 			return
